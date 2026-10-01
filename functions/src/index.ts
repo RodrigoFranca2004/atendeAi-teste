@@ -38,19 +38,81 @@ export const listAtendimentos = onCall(async (request) => {
  * Implementação mínima — sem validação de schema.
  */
 export const createAtendimento = onCall(async (request) => {
-  const { tenantId, transcricao, duracaoSegundos } = request.data ?? {};
+  const {
+    tenantId,
+    transcricao,
+    duracaoSegundos,
+    prioridade = "media",
+  } = request.data ?? {};
 
   if (!tenantId || typeof tenantId !== "string") {
     throw new HttpsError("invalid-argument", "tenantId é obrigatório.");
+  }
+
+  if (
+    prioridade !== "baixa" &&
+    prioridade !== "media" &&
+    prioridade !== "alta"
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      'prioridade deve ser "baixa", "media" ou "alta".'
+    );
   }
 
   const doc = await db.collection("atendimentos").add({
     tenantId,
     transcricao: transcricao ?? "",
     duracaoSegundos: duracaoSegundos ?? 0,
+    prioridade,
     status: "novo",
     criadoEm: new Date().toISOString(),
   });
 
   return { id: doc.id };
+});
+
+export const updateAtendimentoStatus = onCall(async (request) => {
+  const { atendimentoId, tenantId, novoStatus } = request.data ?? {};
+
+  if (!atendimentoId || typeof atendimentoId !== "string") {
+    throw new HttpsError("invalid-argument", "atendimentoId é obrigatório.");
+  }
+
+  if (!tenantId || typeof tenantId !== "string") {
+    throw new HttpsError("invalid-argument", "tenantId é obrigatório.");
+  }
+
+  if (
+    novoStatus !== "novo" &&
+    novoStatus !== "pendente" &&
+    novoStatus !== "resolvido"
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      'novoStatus deve ser "novo", "pendente" ou "resolvido".'
+    );
+  }
+
+  const atendimentoRef = db.collection("atendimentos").doc(atendimentoId);
+  const atendimento = await atendimentoRef.get();
+
+  if (!atendimento.exists) {
+    throw new HttpsError("not-found", "Atendimento não encontrado.");
+  }
+
+  const data = atendimento.data();
+
+  if (data?.tenantId !== tenantId) {
+    throw new HttpsError(
+      "permission-denied",
+      "Atendimento não pertence ao tenant informado."
+    );
+  }
+
+  await atendimentoRef.update({
+    status: novoStatus,
+  });
+
+  return { ok: true };
 });

@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { createAtendimento, updateAtendimentoStatus } from "../src/index"
 
 // Garante um único app inicializado apontando para o emulador
 // (FIRESTORE_EMULATOR_HOST é definido no script "npm test").
@@ -21,11 +22,74 @@ describe("modelo de dados básico", () => {
     });
 
     const snapshot = await ref.get();
+
     expect(snapshot.exists).toBe(true);
     expect(snapshot.data()?.tenantId).toBe("tenant-teste");
   });
 
-  // Este arquivo é só um exemplo de que o ambiente de testes está funcionando.
-  // Testes adicionais (inclusive para o que você implementar) devem ser
-  // adicionados por você, conforme pedido no enunciado do seu nível de teste.
+  it("recusa atendimento com prioridade inválida sem gravar no banco", async () => {
+    const before = await db.collection("atendimentos").get();
+
+    await expect(
+      createAtendimento.run({
+        data: {
+          tenantId: "tenant-teste",
+          transcricao: "teste de prioridade inválida",
+          duracaoSegundos: 100,
+          prioridade: "urgente",
+        },
+        rawRequest: {} as any,
+      })
+    ).rejects.toThrow("prioridade deve ser");
+
+    const after = await db.collection("atendimentos").get();
+
+    expect(after.size).toBe(before.size);
+  });
+
+  it("atualiza o status quando o atendimento pertence ao tenant informado", async () => {
+  const ref = await db.collection("atendimentos").add({
+    tenantId: "tenant-alfa",
+    transcricao: "teste de atualização",
+    status: "novo",
+  });
+
+  await expect(
+    updateAtendimentoStatus.run({
+      data: {
+        atendimentoId: ref.id,
+        tenantId: "tenant-alfa",
+        novoStatus: "resolvido",
+      },
+      rawRequest: {} as any,
+    })
+  ).resolves.toEqual({ ok: true });
+
+  const snapshot = await ref.get();
+
+  expect(snapshot.data()?.status).toBe("resolvido");
+});
+
+it("recusa atualização de atendimento pertencente a outro tenant", async () => {
+  const ref = await db.collection("atendimentos").add({
+    tenantId: "tenant-alfa",
+    transcricao: "teste de isolamento",
+    status: "novo",
+  });
+
+  await expect(
+    updateAtendimentoStatus.run({
+      data: {
+        atendimentoId: ref.id,
+        tenantId: "tenant-beta",
+        novoStatus: "resolvido",
+      },
+      rawRequest: {} as any,
+    })
+  ).rejects.toThrow("Atendimento não pertence ao tenant informado.");
+
+  const snapshot = await ref.get();
+
+  expect(snapshot.data()?.status).toBe("novo");
+});
 });

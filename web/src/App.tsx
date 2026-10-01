@@ -7,6 +7,7 @@ type Atendimento = {
   transcricao: string;
   status: string;
   duracaoSegundos: number;
+  prioridade: "baixa" | "media" | "alta";
 };
 
 export default function App() {
@@ -29,6 +30,25 @@ export default function App() {
     }
   }
 
+  function prioridadeStyle(prioridade: Atendimento["prioridade"]) {
+  const styles = {
+    baixa: {
+      backgroundColor: "#dcfce7",
+      color: "#166534",
+    },
+    media: {
+      backgroundColor: "#ffedd5",
+      color: "#9a3412",
+    },
+    alta: {
+      backgroundColor: "#fee2e2",
+      color: "#991b1b",
+    },
+  };
+
+  return styles[prioridade];
+}
+
   return (
     <div style={{ fontFamily: "sans-serif", maxWidth: 720, margin: "40px auto" }}>
       <h1>AtendeAI — projeto de teste</h1>
@@ -45,7 +65,19 @@ export default function App() {
       <ul>
         {atendimentos.map((a) => (
           <li key={a.id}>
-            <strong>{a.status}</strong> ({a.duracaoSegundos}s) — {a.transcricao}
+            <strong>{a.status}</strong>{" "}
+            <span
+              style={{
+                ...prioridadeStyle(a.prioridade),
+                padding: "2px 8px",
+                borderRadius: 12,
+                fontSize: 12,
+                fontWeight: "bold",
+              }}
+            >
+              {a.prioridade}
+            </span>{" "}
+            ({a.duracaoSegundos}s) — {a.transcricao}
           </li>
         ))}
       </ul>
