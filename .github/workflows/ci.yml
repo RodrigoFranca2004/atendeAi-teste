@@ -17,7 +17,9 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run build
-      - run: npm test
+      - run: npm install -g firebase-tools
+      - run: firebase emulators:exec --only firestore "cd functions && npm test"
+        working-directory: .
 
   web:
     runs-on: ubuntu-latest
