@@ -12,27 +12,33 @@ async function seed() {
   }
 
   const atendimentos = [
-    {
-      tenantId: "tenant-alfa",
-      transcricao: "Cliente ligou reportando lentidão na internet. Reiniciado o roteador remotamente.",
-      duracaoSegundos: 184,
-      status: "resolvido",
-      criadoEm: new Date().toISOString(),
-    },
-    {
-      tenantId: "tenant-alfa",
-      transcricao: "Cliente pediu segunda via de fatura. Enviado por e-mail.",
-      duracaoSegundos: 97,
-      status: "resolvido",
-      criadoEm: new Date().toISOString(),
-    },
-    {
-      tenantId: "tenant-beta",
-      transcricao: "Cliente reclamou de demora no reembolso do sinistro. Encaminhado para o financeiro.",
-      duracaoSegundos: 251,
-      status: "pendente",
-      criadoEm: new Date().toISOString(),
-    },
+  {
+    tenantId: "tenant-alfa",
+    transcricao:
+      "Cliente ligou reportando lentidão na internet. Reiniciado o roteador remotamente.",
+    duracaoSegundos: 184,
+    prioridade: "alta",
+    status: "resolvido",
+    criadoEm: new Date().toISOString(),
+  },
+  {
+    tenantId: "tenant-alfa",
+    transcricao:
+      "Cliente pediu segunda via de fatura. Enviado por e-mail.",
+    duracaoSegundos: 97,
+    prioridade: "baixa",
+    status: "resolvido",
+    criadoEm: new Date().toISOString(),
+  },
+  {
+    tenantId: "tenant-beta",
+    transcricao:
+      "Cliente reclamou de demora no reembolso do sinistro. Encaminhado para o financeiro.",
+    duracaoSegundos: 251,
+    prioridade: "media",
+    status: "pendente",
+    criadoEm: new Date().toISOString(),
+  },
   ];
 
   for (const atendimento of atendimentos) {
