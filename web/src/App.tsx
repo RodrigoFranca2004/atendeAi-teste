@@ -7,6 +7,7 @@ type Atendimento = {
   transcricao: string;
   status: string;
   duracaoSegundos: number;
+  prioridade: "baixa" | "media" | "alta";
 };
 
 export default function App() {
@@ -45,7 +46,8 @@ export default function App() {
       <ul>
         {atendimentos.map((a) => (
           <li key={a.id}>
-            <strong>{a.status}</strong> ({a.duracaoSegundos}s) — {a.transcricao}
+            <strong>{a.status}</strong> — prioridade: <strong>{a.prioridade}</strong> (
+            {a.duracaoSegundos}s) — {a.transcricao}
           </li>
         ))}
       </ul>
